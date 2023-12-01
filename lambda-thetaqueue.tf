@@ -83,7 +83,7 @@ resource "aws_lambda_function" "thetaqueue" {
   description   = "Lambda function for thetaqueue"
   role          = aws_iam_role.thetaqueue.arn
   handler       = "lambda.run"
-  timeout       = "60"
+  timeout       = "15"
 
   # depends_on = [aws_cloudwatch_log_group.thetaqueue_log_group]
 
@@ -102,7 +102,7 @@ resource "aws_lambda_function" "thetaqueue" {
 resource "aws_cloudwatch_event_rule" "thetaqueue" {
   name                = "every-five-minutesthetaqueue"
   description         = "Run thetaqueue lambda"
-  schedule_expression = "rate(5 minutes)"
+  schedule_expression = "rate(60 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "thetaqueue" {
