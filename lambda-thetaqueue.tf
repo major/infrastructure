@@ -81,7 +81,7 @@ resource "aws_lambda_function" "thetaqueue" {
   filename      = "bootstrap.zip"
   function_name = "thetaqueue"
   role          = aws_iam_role.thetaqueue.arn
-  handler       = "helloworld.run"
+  handler       = "lambda.run"
 
   source_code_hash = data.archive_file.thetaqueue.output_base64sha256
 
