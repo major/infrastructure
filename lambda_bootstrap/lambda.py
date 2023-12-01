@@ -1,10 +1,10 @@
 # Just a basic lambda bootstrap.
 
 
-def run():
+def run(event, context):
     """Print hello world."""
-    print("Hello world!")
+    print(event, context)
 
 
 if __name__ == "__main__":
-    run()
+    run(None, None)
