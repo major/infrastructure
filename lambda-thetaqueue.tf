@@ -85,6 +85,8 @@ resource "aws_lambda_function" "thetaqueue" {
   handler       = "lambda.run"
   timeout       = "60"
 
+  # depends_on = [aws_cloudwatch_log_group.thetaqueue_log_group]
+
   source_code_hash = data.archive_file.thetaqueue.output_base64sha256
 
   runtime = "python3.11"
@@ -96,6 +98,7 @@ resource "aws_lambda_function" "thetaqueue" {
   }
 }
 
+# Eventbridge/Cloudwatch schedule trigger
 resource "aws_cloudwatch_event_rule" "thetaqueue" {
   name                = "every-five-minutesthetaqueue"
   description         = "Run thetaqueue lambda"
@@ -114,4 +117,35 @@ resource "aws_lambda_permission" "thetaqueue" {
   function_name = aws_lambda_function.thetaqueue.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.thetaqueue.arn
+}
+
+# Logging
+resource "aws_iam_policy" "thetaqueue_logging_policy" {
+  name = "function-logging-policy"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        Action : [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Effect : "Allow",
+        Resource : "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "thetaqueue_logging_policy_attachment" {
+  role       = aws_iam_role.thetaqueue.id
+  policy_arn = aws_iam_policy.thetaqueue_logging_policy.arn
+}
+
+resource "aws_cloudwatch_log_group" "thetaqueue_log_group" {
+  name              = "/aws/lambda/${aws_lambda_function.thetaqueue.function_name}"
+  retention_in_days = 7
+  lifecycle {
+    prevent_destroy = false
+  }
 }
