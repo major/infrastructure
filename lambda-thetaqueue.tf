@@ -73,7 +73,7 @@ resource "aws_iam_role" "thetaqueue" {
 
 data "archive_file" "thetaqueue" {
   type        = "zip"
-  source_file = "lambda_bootstrap/helloworld.py"
+  source_file = "lambda_bootstrap/lambda.py"
   output_path = "bootstrap.zip"
 }
 
@@ -92,4 +92,24 @@ resource "aws_lambda_function" "thetaqueue" {
       foo = "bar"
     }
   }
+}
+
+resource "aws_cloudwatch_event_rule" "thetaqueue" {
+  name                = "every-five-minutesthetaqueue"
+  description         = "Run thetaqueue lambda"
+  schedule_expression = "rate(5 minutes)"
+}
+
+resource "aws_cloudwatch_event_target" "thetaqueue" {
+  rule      = aws_cloudwatch_event_rule.thetaqueue.name
+  target_id = "thetaqueue"
+  arn       = aws_lambda_function.thetaqueue.arn
+}
+
+resource "aws_lambda_permission" "thetaqueue" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.thetaqueue.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.thetaqueue.arn
 }
